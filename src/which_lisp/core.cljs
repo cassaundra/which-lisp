@@ -10,50 +10,67 @@
    [testdouble.cljs.csv :as csv]
    [which-lisp.style :as s]))
 
-(def data (r/atom nil))
+(defonce language-table-data (r/atom nil))
 
-(defn read-data []
+(def language-table-columns '("Language" "Type" "Target(s)" "Implementation(s)" "Features" "Status"))
+
+;; TODO improve?
+(defn read-language-table-data []
   (go (let [response (<! (http/get "data.csv"))]
-        (reset! data (:body response)))))
+        (reset! language-table-data (csv/read-csv (str/trim (:body response)) :separator "|")))))
+
+;; TODO clean up
+
+(defn language-type [type-code]
+  (case type-code
+    "cl" "Common Lisp-like"
+    "clj" "Clojure-like"
+    "extra" "Extra semantics"
+    "scm" "Scheme-like"
+    "sexp" "S-exp mapping"
+    "Unknown"))
+
+(defn language-badges [features]
+  (for [feature (str/split features " ")]
+    ^{:key feature}
+    [:span
+     [:span {:class "badge rounded-pill bg-secondary"} feature]
+     " "]))
+
+(defn language-table-row [entry]
+  (let [[lang url type-code target impl description features status] entry]
+    (list [:a {:href url :target "blank"} lang]
+          [language-type type-code] ; expand abbrevation to human-readable name
+          target
+          impl
+          [:span (use-style {:white-space "pre-wrap"}) ; description and features in same line
+           description "\n"
+           (language-badges features)]
+          status)))
 
 (defn language-table []
-  (when @data
+  (when @language-table-data
     [:table.table
+     ;; table headers
      [:thead
       [:tr
-       (for [col '("Language" "Type" "Target(s)" "Implementation(s)" "Features" "Status" "License")]
+       (for [col language-table-columns]
+         ^{:key col}
          [:th {:scope "col"} col])]]
+     ;; table data
      [:tbody
-      ;; TODO add keys for performance
-      (for [entry (csv/read-csv (str/trim @data) :separator "|")]
-        [:tr
-         (let [cols
-           (let [[lang url type target impl description features status license] entry]
-             (list [:a {:href url :target "blank"} lang]
-                   (case type
-                     "cl" "Common Lisp-like"
-                     "clj" "Clojure-like"
-                     "extra" "Extra semantics"
-                     "scm" "Scheme-like"
-                     "sexp" "S-exp mapping"
-                     "Unknown")
-                   target
-                   impl
-                   [:span (use-style {:white-space "pre-wrap"})
-                    description "\n"
-                    (for [feature (str/split features " ")]
-                      [:span [:span {:class "badge rounded-pill bg-secondary"} feature] " "])]
-                   status
-                   license
-                   ))]
-           (for [col cols]
-             ;; ^{:key col}
-             [:td {:scope "row"} col]))]
-        ;; TODO how
+      (doall
+       (for [[row-idx entry] (map-indexed list @language-table-data)]
+         ^{:key row-idx}
+         [:tr
+          ;; draw columns of row
+          (for [[col-idx col] (map-indexed list (language-table-row entry))]
+            ^{:key col-idx}
+            [:td {:scope "row"} col])]
+         ))]
+     ]))
 
-        )]])
-  )
-
+;; TODO use Markdown for intro
 (defn home-page []
   [:div.container
    [:h1 "Which Lisp?"]
@@ -62,17 +79,16 @@
     "This tool is designed to help those interested in learning to use a lisp-flavored "
     "language, but don't know where to start."]
    [:p "Special thanks to the contributors of "
-    [:a {:href "https://github.com/dundalek/awesome-lisp-languages" :target "blank"}
-     "awesome-lisp-languages"]
-    ", from which much of the information on this site originates."
-    ]
-   [:h2 "Table"]
+    [:a {:href "https://github.com/dundalek/awesome-lisp-languages" :target "blank"} "awesome-lisp-languages"]
+    ", from which much of the information on this site originates."]
+   [:h2 "Languages"]
+   [:div {:class "alert alert-warning"} [:b "Note: "] "The information in the following table is approximately correct, but has yet to be thoroughly reviewed and may contain errors or omissions."]
    [language-table]])
 
 (defn mount-root []
   (s/constant-styles)
   (d/render [home-page] (.getElementById js/document "app"))
-  (read-data))
+  (read-language-table-data))
 
 (defn ^:export init! []
   (mount-root))

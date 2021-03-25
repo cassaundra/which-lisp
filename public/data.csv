@@ -1,2 +1,7 @@
-ClojureScript|https://clojurescript.org/|clj|JavaScript|Clojure|Description goes here|web javascript source-to-source macros repl|Active|EPL
-Fennel|https://fennel-lang.org/|sexp|Lua|Lua|Description goes here|embeddable source-to-source lua macros repl|Active|MIT
+Bigloo|https://www-sop.inria.fr/mimosa/fp/Bigloo/|scm|Native|Scheme/C|Description goes here|general-purpose practical c c-interop jvm-interop macros ffi|GPL2
+ClojureScript|https://clojurescript.org/|clj|JavaScript|Clojure|Description goes here|practical web javascript source-to-source macros macros|EPL
+Clojure|https://clojure.org/|clj|JVM bytecode|Java/Clojure|Description goes here|general-purpose practical multi-paradigm jvm-interop jvm concurrency macros|EPL
+Extempore|https://github.com/digego/extempore/|scm|LLVM|C++/C|Description goes here|unique c-interop macros|BSD-2
+Fennel|https://fennel-lang.org/|sexp|Lua|Lua|Description goes here|embeddable source-to-source lua macros|MIT
+Ketos|https://github.com/murarth/ketos/|extra|Bytecode|Rust|Description goes here|embeddable rust|MIT or Apache
+Racket|https://racket-lang.org/|scm|Bytecode or native JIT|Scheme/Racket/C/C++|Description goes here|general-purpose multi-paradigm academic language-based macros metaprogramming ffi|MIT or Apache
